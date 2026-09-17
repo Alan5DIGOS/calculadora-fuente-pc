@@ -75,32 +75,80 @@
 
 <!-- 2. Ejecutamos la lógica de la aplicación -->
 <script>
-  // Función para inyectar los datos en los menús desplegables
-  function poblarSelect(idElemento, categoriaDatos) {
-    const select = document.getElementById(idElemento);
+  const cpuSelect = document.getElementById('cpu');
+  const moboSelect = document.getElementById('motherboard');
+  const gpuSelect = document.getElementById('gpu');
+  const almcSelect = document.getElementById('almacenamiento');
+  const refrSelect = document.getElementById('refrigeracion');
+
+  // Función para poblar menús simples (GPU, Almacenamiento, Refrigeración)
+  function poblarSelectNormal(selectElement, categoriaDatos) {
     hardwareData[categoriaDatos].forEach(item => {
       const option = document.createElement('option');
       option.value = item.consumo;
       option.textContent = item.nombre;
-      select.appendChild(option);
+      selectElement.appendChild(option);
     });
-    // Escuchar cada cambio para recalcular al instante
-    select.addEventListener('change', calcularConsumo);
+    selectElement.addEventListener('change', calcularConsumo);
   }
 
-  // Algoritmo de cálculo
+  // Función especial para poblar CPU guardando el dato del socket
+  function poblarCPU() {
+    hardwareData.cpu.forEach((item, index) => {
+      const option = document.createElement('option');
+      option.value = item.consumo;
+      option.textContent = item.nombre;
+      option.dataset.socket = item.socket; // Guardamos el socket oculto en el HTML
+      cpuSelect.appendChild(option);
+    });
+    cpuSelect.addEventListener('change', filtrarMotherboards);
+    cpuSelect.addEventListener('change', calcularConsumo);
+  }
+
+  // Función de Filtro de Compatibilidad
+  function filtrarMotherboards() {
+    // 1. Obtener el socket del CPU seleccionado
+    const selectedOption = cpuSelect.options[cpuSelect.selectedIndex];
+    const socketRequerido = selectedOption.dataset.socket;
+
+    // 2. Limpiar el menú de motherboards actual
+    moboSelect.innerHTML = '';
+
+    // 3. Filtrar y mostrar solo motherboards compatibles
+    const motherboardsCompatibles = hardwareData.motherboard.filter(
+      mobo => mobo.socket === socketRequerido || mobo.socket === 'none'
+    );
+
+    if (socketRequerido === 'none') {
+      const option = document.createElement('option');
+      option.value = 0;
+      option.textContent = "Seleccioná un CPU primero...";
+      moboSelect.appendChild(option);
+    } else {
+      motherboardsCompatibles.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.consumo;
+        option.textContent = item.nombre;
+        moboSelect.appendChild(option);
+      });
+    }
+    
+    // Recalcular el consumo al cambiar la placa base
+    calcularConsumo();
+  }
+
+  // Algoritmo de cálculo con margen industrial
   function calcularConsumo() {
-    const categorias = ['cpu', 'gpu', 'motherboard', 'almacenamiento', 'refrigeracion'];
+    const selects = [cpuSelect, moboSelect, gpuSelect, almcSelect, refrSelect];
     let consumoTotal = 0;
     
-    categorias.forEach(cat => {
-      const select = document.getElementById(cat);
+    selects.forEach(select => {
       consumoTotal += parseInt(select.value) || 0;
     });
 
     document.getElementById('consumoBase').textContent = consumoTotal;
     
-    // Aplicar margen de seguridad del 25% y redondear al múltiplo de 50 más cercano
+    // Aplicar margen de seguridad del 25% y redondear al múltiplo de 50 superior
     if (consumoTotal > 0) {
       const margenAplicado = consumoTotal * 1.25;
       const recomendado = Math.ceil(margenAplicado / 50) * 50; 
@@ -110,12 +158,17 @@
     }
   }
 
-  // Inicializar la interfaz al cargar la página
-  poblarSelect('cpu', 'cpu');
-  poblarSelect('gpu', 'gpu');
-  poblarSelect('motherboard', 'motherboard');
-  poblarSelect('almacenamiento', 'almacenamiento');
-  poblarSelect('refrigeracion', 'refrigeracion');
+  // Inicializar todo
+  poblarCPU();
+  poblarSelectNormal(gpuSelect, 'gpu');
+  poblarSelectNormal(almcSelect, 'almacenamiento');
+  poblarSelectNormal(refrSelect, 'refrigeracion');
+  
+  // Escuchar cambios manuales en el motherboard
+  moboSelect.addEventListener('change', calcularConsumo);
+  
+  // Forzar el filtro inicial para que diga "Seleccioná un CPU primero"
+  filtrarMotherboards();
 </script>
 
 </body>
