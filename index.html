@@ -7,28 +7,124 @@
   <title>Calculadora de Fuente de Poder (PSU)</title>
   <style>
     :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
+      --bg: #0b1121;
+      --bg-gradient: radial-gradient(circle at 50% -20%, #1e293b, #0b1121);
+      --card-bg: rgba(30, 41, 59, 0.6);
       --accent: #38bdf8;
+      --accent-hover: #0ea5e9;
+      --accent-glow: rgba(56, 189, 248, 0.3);
       --text: #f8fafc;
-      --border: #334155;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.08);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 2rem 1rem; display: flex; justify-content: center; }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    
+    body { 
+      background: var(--bg-gradient); 
+      background-color: var(--bg);
+      color: var(--text); 
+      padding: 3rem 1.5rem; 
+      display: flex; 
+      justify-content: center; 
+      min-height: 100vh;
+    }
+    
     .container { max-width: 800px; width: 100%; }
-    header { text-align: center; margin-bottom: 2rem; }
-    h1 { color: var(--accent); margin-bottom: 0.5rem; font-size: 1.8rem; }
-    p.subtitle { color: #94a3b8; font-size: 0.95rem; }
-    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
-    .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+    
+    header { text-align: center; margin-bottom: 2.5rem; }
+    
+    h1 { 
+      background: linear-gradient(90deg, #f8fafc, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.75rem; 
+      font-size: 2.2rem; 
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    
+    p.subtitle { color: var(--text-muted); font-size: 1rem; line-height: 1.5; }
+    
+    /* Efecto Glassmorphism para la tarjeta principal */
+    .card { 
+      background: var(--card-bg); 
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border); 
+      border-radius: 16px; 
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0,0,0, 0.5);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+      box-shadow: 0 10px 40px var(--accent-glow);
+      border-color: rgba(56, 189, 248, 0.2);
+    }
+    
+    .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
     @media (max-width: 600px) { .grid-inputs { grid-template-columns: 1fr; } }
-    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #94a3b8; }
-    select { width: 100%; background: #0b1120; border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 0.75rem; font-size: 1rem; outline: none; }
-    select:focus { border-color: var(--accent); }
-    .results { text-align: center; padding-top: 1.5rem; border-top: 1px solid var(--border); }
-    .results p { color: #94a3b8; margin-bottom: 0.5rem; }
-    .result-val { font-size: 2.5rem; font-weight: 700; color: var(--accent); }
-    .unit { font-size: 1rem; color: #94a3b8; font-weight: normal; }
+    
+    label { 
+      display: block; 
+      font-size: 0.85rem; 
+      font-weight: 600; 
+      margin-bottom: 0.5rem; 
+      color: var(--text-muted); 
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    select { 
+      width: 100%; 
+      background: #0f172a; 
+      border: 1px solid var(--border); 
+      border-radius: 8px; 
+      color: var(--text); 
+      padding: 0.85rem 1rem; 
+      font-size: 1rem; 
+      outline: none; 
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem top 50%;
+      background-size: 0.65rem auto;
+      transition: all 0.2s ease;
+    }
+    
+    select:focus, select:hover { 
+      border-color: var(--accent); 
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    }
+    
+    .results { 
+      text-align: center; 
+      padding-top: 2rem; 
+      border-top: 1px solid var(--border); 
+      margin-top: 1rem;
+    }
+    
+    .results p { color: var(--text-muted); font-size: 1.05rem; }
+    
+    /* Animación de pulso para el resultado final */
+    .result-val { 
+      font-size: 3.5rem; 
+      font-weight: 800; 
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-top: 0.5rem;
+      text-shadow: 0px 4px 20px rgba(56, 189, 248, 0.2);
+    }
+    
+    .unit { font-size: 1.5rem; color: #818cf8; font-weight: 600; -webkit-text-fill-color: initial;}
+    
+    /* Estilos pulidos para el artículo SEO */
+    article h2, article h3 { color: var(--text); font-weight: 700; }
+    article p, article li { color: #cbd5e1; font-size: 1.05rem; }
+    article ul li::marker { color: var(--accent); }
   </style>
 </head>
 <body>
