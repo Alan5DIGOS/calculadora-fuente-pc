@@ -68,6 +68,21 @@
       <div class="result-val" id="fuenteRecomendada">-- <span class="unit">W</span></div>
     </div>
   </section>
+
+  <!-- Bloque SEO / Helpful Content -->
+  <article style="margin-top: 3rem; line-height: 1.6; color: #cbd5e1;">
+    <h2 style="color: var(--text); font-size: 1.5rem; margin-bottom: 1rem;">¿Cómo calcular los Watts exactos para tu PC Gamer o de Trabajo?</h2>
+    <p style="margin-bottom: 1rem;">Armar una computadora desde cero o actualizar tu placa de video requiere conocer con precisión el consumo energético de tus componentes (conocido como TDP o Potencia de Diseño Térmico). Comprar una fuente de alimentación (PSU) que se quede corta puede provocar apagones repentinos, reinicios bajo carga pesada o, en el peor de los casos, daños irreversibles en tu motherboard o tarjeta gráfica.</p>
+
+    <h3 style="color: var(--text); font-size: 1.25rem; margin: 2rem 0 1rem 0;">¿Por qué agregamos un margen de seguridad del 25%?</h3>
+    <p style="margin-bottom: 1rem;">Si sumás el consumo máximo de tu procesador (ej. un AMD Ryzen) y tu gráfica (ej. una serie RTX o Radeon RX) y el total da 400W, comprar una fuente de exactamente 400W es un error crítico. Las fuentes de poder operan en su curva de máxima eficiencia energética cuando trabajan entre el 50% y el 80% de su capacidad total. Al aplicar un margen de seguridad industrial, garantizamos que la fuente trabaje fría, silenciosa y prolongue su vida útil.</p>
+
+    <h3 style="color: var(--text); font-size: 1.25rem; margin: 2rem 0 1rem 0;">Preguntas Frecuentes sobre Fuentes de PC</h3>
+    <ul style="margin-bottom: 1.5rem; padding-left: 1.5rem;">
+      <li style="margin-bottom: 0.75rem;"><strong>¿Qué significa la certificación 80 Plus?</strong> Es un estándar que garantiza que la fuente convierte eficientemente la corriente de la pared hacia los componentes. Una fuente 80 Plus Bronze o Gold no te da "más watts", sino que desperdicia menos energía en forma de calor, lo que se traduce en una factura de luz más baja.</li>
+      <li style="margin-bottom: 0.75rem;"><strong>¿La marca de la fuente importa?</strong> Absolutamente. Es preferible una fuente de 600W de una marca reconocida (como Corsair, Seasonic, EVGA o XPG) que una fuente genérica que prometa 800W irreales sin protecciones contra sobretensión (OVP/UVP).</li>
+    </ul>
+  </article>
 </main>
 
 <!-- 1. Cargamos primero el archivo de la base de datos -->
@@ -171,5 +186,42 @@
   filtrarMotherboards();
 </script>
 
+<!-- Datos Estructurados JSON-LD para SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Calculadora de Fuente de Poder PC (PSU Calculator)",
+      "description": "Calculadora exacta de Watts para ensambles de PC. Suma el TDP de tu CPU, GPU y motherboard, y aplica margen de seguridad para recomendar la fuente ideal.",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [{
+        "@type": "Question",
+        "name": "¿Por qué necesito un margen de seguridad en mi fuente de PC?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Las fuentes operan con máxima eficiencia entre el 50% y 80% de carga. Agregar un margen del 25% evita apagones, reduce el ruido del ventilador y alarga la vida útil del hardware."
+        }
+      }, {
+        "@type": "Question",
+        "name": "¿Qué es la certificación 80 Plus en una fuente?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Es un certificado de eficiencia energética. Indica que la fuente desperdicia menos electricidad en forma de calor. Las categorías comunes son White, Bronze, Gold y Platinum."
+        }
+      }]
+    }
+  ]
+}
+</script>
 </body>
 </html>
