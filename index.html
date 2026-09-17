@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Fuente de Poder (PSU)</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 2rem 1rem; display: flex; justify-content: center; }
+    .container { max-width: 800px; width: 100%; }
+    header { text-align: center; margin-bottom: 2rem; }
+    h1 { color: var(--accent); margin-bottom: 0.5rem; font-size: 1.8rem; }
+    p.subtitle { color: #94a3b8; font-size: 0.95rem; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+    .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+    @media (max-width: 600px) { .grid-inputs { grid-template-columns: 1fr; } }
+    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #94a3b8; }
+    select { width: 100%; background: #0b1120; border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 0.75rem; font-size: 1rem; outline: none; }
+    select:focus { border-color: var(--accent); }
+    .results { text-align: center; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    .results p { color: #94a3b8; margin-bottom: 0.5rem; }
+    .result-val { font-size: 2.5rem; font-weight: 700; color: var(--accent); }
+    .unit { font-size: 1rem; color: #94a3b8; font-weight: normal; }
+  </style>
+</head>
+<body>
+
+<main class="container">
+  <header>
+    <h1>Calculadora de Fuente de Poder (PSU)</h1>
+    <p class="subtitle">Seleccioná tu hardware para calcular el consumo y obtener la fuente recomendada.</p>
+  </header>
+
+  <section class="card">
+    <div class="grid-inputs">
+      <div>
+        <label>Procesador (CPU)</label>
+        <select id="cpu"></select>
+      </div>
+      <div>
+        <label>Placa de Video (GPU)</label>
+        <select id="gpu"></select>
+      </div>
+      <div>
+        <label>Motherboard</label>
+        <select id="motherboard"></select>
+      </div>
+      <div>
+        <label>Almacenamiento</label>
+        <select id="almacenamiento"></select>
+      </div>
+      <div style="grid-column: 1 / -1;">
+        <label>Refrigeración y Ventiladores</label>
+        <select id="refrigeracion"></select>
+      </div>
+    </div>
+
+    <div class="results">
+      <p>Consumo Base Estimado: <strong style="color:var(--text)"><span id="consumoBase">0</span> W</strong></p>
+      <p style="margin-top: 1rem;">Fuente Recomendada (Con margen de seguridad):</p>
+      <div class="result-val" id="fuenteRecomendada">-- <span class="unit">W</span></div>
+    </div>
+  </section>
+</main>
+
+<!-- 1. Cargamos primero el archivo de la base de datos -->
+<script src="datos.js"></script>
+
+<!-- 2. Ejecutamos la lógica de la aplicación -->
+<script>
+  // Función para inyectar los datos en los menús desplegables
+  function poblarSelect(idElemento, categoriaDatos) {
+    const select = document.getElementById(idElemento);
+    hardwareData[categoriaDatos].forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.consumo;
+      option.textContent = item.nombre;
+      select.appendChild(option);
+    });
+    // Escuchar cada cambio para recalcular al instante
+    select.addEventListener('change', calcularConsumo);
+  }
+
+  // Algoritmo de cálculo
+  function calcularConsumo() {
+    const categorias = ['cpu', 'gpu', 'motherboard', 'almacenamiento', 'refrigeracion'];
+    let consumoTotal = 0;
+    
+    categorias.forEach(cat => {
+      const select = document.getElementById(cat);
+      consumoTotal += parseInt(select.value) || 0;
+    });
+
+    document.getElementById('consumoBase').textContent = consumoTotal;
+    
+    // Aplicar margen de seguridad del 25% y redondear al múltiplo de 50 más cercano
+    if (consumoTotal > 0) {
+      const margenAplicado = consumoTotal * 1.25;
+      const recomendado = Math.ceil(margenAplicado / 50) * 50; 
+      document.getElementById('fuenteRecomendada').innerHTML = `${recomendado} <span class="unit">W</span>`;
+    } else {
+      document.getElementById('fuenteRecomendada').innerHTML = `-- <span class="unit">W</span>`;
+    }
+  }
+
+  // Inicializar la interfaz al cargar la página
+  poblarSelect('cpu', 'cpu');
+  poblarSelect('gpu', 'gpu');
+  poblarSelect('motherboard', 'motherboard');
+  poblarSelect('almacenamiento', 'almacenamiento');
+  poblarSelect('refrigeracion', 'refrigeracion');
+</script>
+
+</body>
+</html>
