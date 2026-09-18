@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta name="google-site-verification" content="L5OVc67Y2ij_Wq3DUc1Pcm_V32U8gPCnY6kkmawsT2Q" />
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calculadora de Fuente de Poder (PSU)</title>
@@ -46,7 +45,6 @@
     
     p.subtitle { color: var(--text-muted); font-size: 1rem; line-height: 1.5; }
     
-    /* Efecto Glassmorphism para la tarjeta principal */
     .card { 
       background: var(--card-bg); 
       backdrop-filter: blur(12px);
@@ -75,6 +73,20 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
+
+    /* Estilos para los botones de marca */
+    .brand-selector { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .brand-btn {
+      flex: 1; padding: 0.5rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-muted); cursor: pointer; font-weight: 700; 
+      transition: all 0.2s ease; font-size: 0.85rem;
+    }
+    .brand-btn:hover { background: rgba(255,255,255,0.05); }
+    
+    /* Colores corporativos al activarse */
+    .brand-btn.active.amd-btn { border-color: #ef4444; color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05); }
+    .brand-btn.active.intel-btn { border-color: #3b82f6; color: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); background: rgba(59, 130, 246, 0.05); }
+    .brand-btn.active.nvidia-btn { border-color: #22c55e; color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); background: rgba(34, 197, 94, 0.05); }
     
     select { 
       width: 100%; 
@@ -93,35 +105,22 @@
       background-size: 0.65rem auto;
       transition: all 0.2s ease;
     }
-    
-    select:focus, select:hover { 
+    select:disabled { opacity: 0.5; cursor: not-allowed; }
+    select:focus, select:hover:not(:disabled) { 
       border-color: var(--accent); 
       box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
     }
     
-    .results { 
-      text-align: center; 
-      padding-top: 2rem; 
-      border-top: 1px solid var(--border); 
-      margin-top: 1rem;
-    }
-    
+    .results { text-align: center; padding-top: 2rem; border-top: 1px solid var(--border); margin-top: 1rem; }
     .results p { color: var(--text-muted); font-size: 1.05rem; }
-    
-    /* Animación de pulso para el resultado final */
     .result-val { 
-      font-size: 3.5rem; 
-      font-weight: 800; 
+      font-size: 3.5rem; font-weight: 800; 
       background: linear-gradient(90deg, #38bdf8, #818cf8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-top: 0.5rem;
-      text-shadow: 0px 4px 20px rgba(56, 189, 248, 0.2);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-top: 0.5rem; text-shadow: 0px 4px 20px rgba(56, 189, 248, 0.2);
     }
-    
     .unit { font-size: 1.5rem; color: #818cf8; font-weight: 600; -webkit-text-fill-color: initial;}
     
-    /* Estilos pulidos para el artículo SEO */
     article h2, article h3 { color: var(--text); font-weight: 700; }
     article p, article li { color: #cbd5e1; font-size: 1.05rem; }
     article ul li::marker { color: var(--accent); }
@@ -137,17 +136,31 @@
 
   <section class="card">
     <div class="grid-inputs">
+      
+      <!-- Selector de CPU con Botones -->
       <div>
         <label>Procesador (CPU)</label>
-        <select id="cpu"></select>
+        <div class="brand-selector">
+          <button class="brand-btn amd-btn" data-target="cpu" data-brand="AMD">AMD</button>
+          <button class="brand-btn intel-btn" data-target="cpu" data-brand="Intel">INTEL</button>
+        </div>
+        <select id="cpu" disabled><option>Elegí una marca primero...</option></select>
       </div>
+      
+      <!-- Selector de GPU con Botones -->
       <div>
         <label>Placa de Video (GPU)</label>
-        <select id="gpu"></select>
+        <div class="brand-selector">
+          <button class="brand-btn amd-btn" data-target="gpu" data-brand="AMD">AMD</button>
+          <button class="brand-btn nvidia-btn" data-target="gpu" data-brand="NVIDIA">NVIDIA</button>
+          <button class="brand-btn intel-btn" data-target="gpu" data-brand="Intel">INTEL</button>
+        </div>
+        <select id="gpu" disabled><option>Elegí una marca primero...</option></select>
       </div>
+
       <div>
         <label>Motherboard</label>
-        <select id="motherboard"></select>
+        <select id="motherboard" disabled><option>Elegí un CPU primero...</option></select>
       </div>
       <div>
         <label>Almacenamiento</label>
@@ -173,19 +186,11 @@
 
     <h3 style="color: var(--text); font-size: 1.25rem; margin: 2rem 0 1rem 0;">¿Por qué agregamos un margen de seguridad del 25%?</h3>
     <p style="margin-bottom: 1rem;">Si sumás el consumo máximo de tu procesador (ej. un AMD Ryzen) y tu gráfica (ej. una serie RTX o Radeon RX) y el total da 400W, comprar una fuente de exactamente 400W es un error crítico. Las fuentes de poder operan en su curva de máxima eficiencia energética cuando trabajan entre el 50% y el 80% de su capacidad total. Al aplicar un margen de seguridad industrial, garantizamos que la fuente trabaje fría, silenciosa y prolongue su vida útil.</p>
-
-    <h3 style="color: var(--text); font-size: 1.25rem; margin: 2rem 0 1rem 0;">Preguntas Frecuentes sobre Fuentes de PC</h3>
-    <ul style="margin-bottom: 1.5rem; padding-left: 1.5rem;">
-      <li style="margin-bottom: 0.75rem;"><strong>¿Qué significa la certificación 80 Plus?</strong> Es un estándar que garantiza que la fuente convierte eficientemente la corriente de la pared hacia los componentes. Una fuente 80 Plus Bronze o Gold no te da "más watts", sino que desperdicia menos energía en forma de calor, lo que se traduce en una factura de luz más baja.</li>
-      <li style="margin-bottom: 0.75rem;"><strong>¿La marca de la fuente importa?</strong> Absolutamente. Es preferible una fuente de 600W de una marca reconocida (como Corsair, Seasonic, EVGA o XPG) que una fuente genérica que prometa 800W irreales sin protecciones contra sobretensión (OVP/UVP).</li>
-    </ul>
   </article>
 </main>
 
-<!-- 1. Cargamos primero el archivo de la base de datos -->
 <script src="datos.js"></script>
 
-<!-- 2. Ejecutamos la lógica de la aplicación -->
 <script>
   const cpuSelect = document.getElementById('cpu');
   const moboSelect = document.getElementById('motherboard');
@@ -193,8 +198,9 @@
   const almcSelect = document.getElementById('almacenamiento');
   const refrSelect = document.getElementById('refrigeracion');
 
-  // Función para poblar menús simples (GPU, Almacenamiento, Refrigeración)
+  // Funciones de Poblado Básico
   function poblarSelectNormal(selectElement, categoriaDatos) {
+    selectElement.innerHTML = '';
     hardwareData[categoriaDatos].forEach(item => {
       const option = document.createElement('option');
       option.value = item.consumo;
@@ -204,39 +210,58 @@
     selectElement.addEventListener('change', calcularConsumo);
   }
 
-  // Función especial para poblar CPU guardando el dato del socket
-  function poblarCPU() {
-    hardwareData.cpu.forEach((item, index) => {
+  // Filtrar CPU por Marca
+  function poblarCPU(marca) {
+    cpuSelect.innerHTML = '<option value="0" data-socket="none">Seleccionar Procesador...</option>';
+    cpuSelect.disabled = false;
+    
+    const cpusFiltrados = hardwareData.cpu.filter(item => item.nombre.includes(marca));
+    cpusFiltrados.forEach(item => {
       const option = document.createElement('option');
       option.value = item.consumo;
       option.textContent = item.nombre;
-      option.dataset.socket = item.socket; // Guardamos el socket oculto en el HTML
+      option.dataset.socket = item.socket;
       cpuSelect.appendChild(option);
     });
+    
     cpuSelect.addEventListener('change', filtrarMotherboards);
     cpuSelect.addEventListener('change', calcularConsumo);
+    filtrarMotherboards(); // Resetear mobo al cambiar marca
   }
 
-  // Función de Filtro de Compatibilidad
-  function filtrarMotherboards() {
-    // 1. Obtener el socket del CPU seleccionado
-    const selectedOption = cpuSelect.options[cpuSelect.selectedIndex];
-    const socketRequerido = selectedOption.dataset.socket;
+  // Filtrar GPU por Marca
+  function poblarGPU(marca) {
+    gpuSelect.innerHTML = '<option value="0">Seleccionar Placa de Video...</option>';
+    gpuSelect.innerHTML += '<option value="0">Sin Tarjeta de Video (Integrada)</option>';
+    gpuSelect.disabled = false;
 
-    // 2. Limpiar el menú de motherboards actual
+    const gpusFiltradas = hardwareData.gpu.filter(item => item.nombre.includes(marca));
+    gpusFiltradas.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.consumo;
+      option.textContent = item.nombre;
+      gpuSelect.appendChild(option);
+    });
+    
+    gpuSelect.addEventListener('change', calcularConsumo);
+    calcularConsumo();
+  }
+
+  // Filtrar Motherboards por Socket
+  function filtrarMotherboards() {
+    const selectedOption = cpuSelect.options[cpuSelect.selectedIndex];
+    const socketRequerido = selectedOption ? selectedOption.dataset.socket : 'none';
+
     moboSelect.innerHTML = '';
 
-    // 3. Filtrar y mostrar solo motherboards compatibles
-    const motherboardsCompatibles = hardwareData.motherboard.filter(
-      mobo => mobo.socket === socketRequerido || mobo.socket === 'none'
-    );
-
-    if (socketRequerido === 'none') {
-      const option = document.createElement('option');
-      option.value = 0;
-      option.textContent = "Seleccioná un CPU primero...";
-      moboSelect.appendChild(option);
+    if (socketRequerido === 'none' || !socketRequerido) {
+      moboSelect.innerHTML = '<option value="0">Seleccioná un CPU primero...</option>';
+      moboSelect.disabled = true;
     } else {
+      moboSelect.disabled = false;
+      const motherboardsCompatibles = hardwareData.motherboard.filter(
+        mobo => mobo.socket === socketRequerido || mobo.socket === 'none'
+      );
       motherboardsCompatibles.forEach(item => {
         const option = document.createElement('option');
         option.value = item.consumo;
@@ -244,12 +269,26 @@
         moboSelect.appendChild(option);
       });
     }
-    
-    // Recalcular el consumo al cambiar la placa base
     calcularConsumo();
   }
 
-  // Algoritmo de cálculo con margen industrial
+  // Lógica de los Botones de Marca
+  document.querySelectorAll('.brand-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const targetId = e.target.dataset.target;
+      const brand = e.target.dataset.brand;
+      
+      // Quitar clase active a los botones hermanos
+      e.target.parentElement.querySelectorAll('.brand-btn').forEach(b => b.classList.remove('active'));
+      // Agregar clase active al clickeado
+      e.target.classList.add('active');
+      
+      if(targetId === 'cpu') poblarCPU(brand);
+      if(targetId === 'gpu') poblarGPU(brand);
+    });
+  });
+
+  // Calculadora Principal
   function calcularConsumo() {
     const selects = [cpuSelect, moboSelect, gpuSelect, almcSelect, refrSelect];
     let consumoTotal = 0;
@@ -260,7 +299,6 @@
 
     document.getElementById('consumoBase').textContent = consumoTotal;
     
-    // Aplicar margen de seguridad del 25% y redondear al múltiplo de 50 superior
     if (consumoTotal > 0) {
       const margenAplicado = consumoTotal * 1.25;
       const recomendado = Math.ceil(margenAplicado / 50) * 50; 
@@ -270,20 +308,13 @@
     }
   }
 
-  // Inicializar todo
-  poblarCPU();
-  poblarSelectNormal(gpuSelect, 'gpu');
+  // Inicializar Almacenamiento y Refrigeración
   poblarSelectNormal(almcSelect, 'almacenamiento');
   poblarSelectNormal(refrSelect, 'refrigeracion');
-  
-  // Escuchar cambios manuales en el motherboard
   moboSelect.addEventListener('change', calcularConsumo);
-  
-  // Forzar el filtro inicial para que diga "Seleccioná un CPU primero"
-  filtrarMotherboards();
 </script>
 
-<!-- Datos Estructurados JSON-LD para SEO -->
+<!-- Datos Estructurados JSON-LD para SEO (Mantener el mismo de antes) -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -291,31 +322,10 @@
     {
       "@type": "WebApplication",
       "name": "Calculadora de Fuente de Poder PC (PSU Calculator)",
-      "description": "Calculadora exacta de Watts para ensambles de PC. Suma el TDP de tu CPU, GPU y motherboard, y aplica margen de seguridad para recomendar la fuente ideal.",
+      "description": "Calculadora exacta de Watts para ensambles de PC.",
       "applicationCategory": "UtilitiesApplication",
       "operatingSystem": "All",
-      "offers": {
-        "@type": "Offer",
-        "price": "0"
-      }
-    },
-    {
-      "@type": "FAQPage",
-      "mainEntity": [{
-        "@type": "Question",
-        "name": "¿Por qué necesito un margen de seguridad en mi fuente de PC?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Las fuentes operan con máxima eficiencia entre el 50% y 80% de carga. Agregar un margen del 25% evita apagones, reduce el ruido del ventilador y alarga la vida útil del hardware."
-        }
-      }, {
-        "@type": "Question",
-        "name": "¿Qué es la certificación 80 Plus en una fuente?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Es un certificado de eficiencia energética. Indica que la fuente desperdicia menos electricidad en forma de calor. Las categorías comunes son White, Bronze, Gold y Platinum."
-        }
-      }]
+      "offers": { "@type": "Offer", "price": "0" }
     }
   ]
 }
