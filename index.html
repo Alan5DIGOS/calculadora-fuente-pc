@@ -148,6 +148,55 @@
 
   footer { margin-top: 60px; border-top: 1px solid var(--line); padding: 22px 0 40px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
 
+  /* ---------- Presets ---------- */
+  .preset-row { align-items: start; }
+  .preset-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+  .preset-btn {
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--text-mid);
+    font-family: var(--font-mono); font-size: 12px; padding: 8px 13px; border-radius: 6px; cursor: pointer;
+  }
+  .preset-btn:hover { border-color: var(--accent); color: var(--text); }
+  .preset-btn:active { background: var(--accent-dim); }
+
+  /* ---------- Socket badge ---------- */
+  .select-with-badge { display: flex; gap: 8px; align-items: center; }
+  .select-with-badge select { flex: 1; }
+  .socket-badge {
+    font-family: var(--font-mono); font-size: 11px; color: var(--accent);
+    border: 1px solid var(--accent-dim); padding: 8px 10px; border-radius: 6px; white-space: nowrap;
+  }
+
+  /* ---------- Builds ---------- */
+  .builds-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line-soft); }
+  .builds-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .builds-header span { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+  .save-build-btn {
+    background: transparent; border: 1px solid var(--line); color: var(--text-mid);
+    font-family: var(--font-mono); font-size: 11px; padding: 5px 10px; border-radius: 5px; cursor: pointer;
+  }
+  .save-build-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .builds-list { display: flex; flex-direction: column; gap: 6px; }
+  .build-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px;
+  }
+  .build-row .build-name { font-size: 12.5px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .build-row .build-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .build-row button {
+    background: transparent; border: 1px solid var(--line); color: var(--text-dim);
+    font-family: var(--font-mono); font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer;
+  }
+  .build-row button.load-btn:hover { border-color: var(--ok); color: var(--ok); }
+  .build-row button.delete-btn:hover { border-color: var(--warn); color: var(--warn); }
+  .builds-empty { font-size: 12px; color: var(--text-dim); font-style: normal; }
+
+  /* ---------- Export ---------- */
+  .export-btn {
+    width: 100%; margin-top: 16px; background: transparent; border: 1px dashed var(--line);
+    color: var(--text-mid); font-family: var(--font-mono); font-size: 12px; padding: 10px; border-radius: 6px; cursor: pointer;
+  }
+  .export-btn:hover { border-color: var(--accent); color: var(--accent); }
+
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -168,6 +217,16 @@
 
     <section class="panel form-panel" aria-label="Selección de componentes">
 
+      <div class="row preset-row">
+        <div class="row-label"><b>Preset rápido</b><span>armado sugerido</span></div>
+        <div class="preset-buttons">
+          <button type="button" class="preset-btn" data-preset="oficina">Oficina</button>
+          <button type="button" class="preset-btn" data-preset="gamingEco">Gaming Económico</button>
+          <button type="button" class="preset-btn" data-preset="gamingHigh">Gaming Alto Rendimiento</button>
+          <button type="button" class="preset-btn" data-preset="workstation">Workstation</button>
+        </div>
+      </div>
+
       <div class="row">
         <div class="row-label"><b>Procesador</b><span>CPU</span></div>
         <div class="stack">
@@ -175,7 +234,10 @@
             <button data-value="AMD" class="active">AMD</button>
             <button data-value="INTEL">Intel</button>
           </div>
-          <select id="cpuModel" disabled><option>Elegí una marca primero...</option></select>
+          <div class="select-with-badge">
+            <select id="cpuModel" disabled><option>Elegí una marca primero...</option></select>
+            <span class="socket-badge" id="socketBadge">—</span>
+          </div>
         </div>
       </div>
 
@@ -248,6 +310,16 @@
       </div>
 
       <div class="breakdown" id="breakdown"></div>
+
+      <div class="builds-section">
+        <div class="builds-header">
+          <span>Mis armados</span>
+          <button type="button" class="save-build-btn" id="saveBuildBtn">+ Guardar este armado</button>
+        </div>
+        <div class="builds-list" id="buildsList"></div>
+      </div>
+
+      <button type="button" class="export-btn" id="exportBtn">Descargar resultado como imagen</button>
     </aside>
 
   </div>
@@ -286,6 +358,23 @@
 (function() {
   "use strict";
   // hardwareData viene de datos.js (no se duplica acá)
+
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const numberState = new WeakMap();
+  function animateNumber(el, to) {
+    const from = numberState.has(el) ? numberState.get(el) : (parseInt(el.textContent) || 0);
+    numberState.set(el, to);
+    if (reduceMotion || from === to) { el.textContent = to; return; }
+    const start = performance.now();
+    const duration = 350;
+    function frame(now) {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(from + (to - from) * eased);
+      if (t < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
 
   let marginPct = 25;
 
@@ -333,6 +422,7 @@
   function filtrarMotherboards() {
     const opt = cpuSel.options[cpuSel.selectedIndex];
     const socket = opt ? opt.dataset.socket : "none";
+    document.getElementById("socketBadge").textContent = (socket && socket !== "none") ? socket : "—";
     if (!socket || socket === "none") {
       mbSel.innerHTML = '<option value="0">Elegí un CPU primero...</option>';
       mbSel.disabled = true;
@@ -390,7 +480,7 @@
     const total = cpuW + gpuW + mbW + ramW + storageW + coolingW;
     const recommended = total > 0 ? Math.ceil((total * (1 + marginPct / 100)) / 50) * 50 : 0;
 
-    document.getElementById("totalWatts").textContent = total;
+    animateNumber(document.getElementById("totalWatts"), total);
     document.getElementById("psuWatts").textContent = (recommended || "—") + " W";
 
     const badge = document.getElementById("psuBadge");
@@ -440,6 +530,203 @@
       document.querySelector(`[data-seg="margin"] [data-value="${marginPct}"]`)?.click();
     }
   } catch (e) { /* ignorar estado corrupto */ }
+
+  // ---------- Presets ----------
+  const PRESETS = {
+    oficina: {
+      cpuBrand: "AMD", cpu: "Ryzen 3 3100 / 3300X",
+      gpuBrand: "NVIDIA", gpu: null,
+      mb: "A320 / A520", ram: "DDR4 8GB (2x4GB) 3200MHz",
+      storage: "1x SSD SATA (2.5\")", cooling: "Aire Básico"
+    },
+    gamingEco: {
+      cpuBrand: "AMD", cpu: "Ryzen 5 5600G / 5600",
+      gpuBrand: "AMD", gpu: "Radeon RX 7600",
+      mb: "B450 / B550", ram: "DDR4 16GB (2x8GB) 3200MHz",
+      storage: "Combo Básico: 1x M.2 NVMe + 1x SSD SATA", cooling: "Aire Estándar"
+    },
+    gamingHigh: {
+      cpuBrand: "AMD", cpu: "Ryzen 7 7800X3D",
+      gpuBrand: "NVIDIA", gpu: "RTX 5070 Ti",
+      mb: "X670 / X670E High-End", ram: "DDR5 32GB (2x16GB) 6000MHz",
+      storage: "Combo Rendimiento: 2x M.2 NVMe", cooling: "Líquida AIO 360mm"
+    },
+    workstation: {
+      cpuBrand: "AMD", cpu: "Ryzen 9 9950X",
+      gpuBrand: "NVIDIA", gpu: "RTX 4070 Ti / Super",
+      mb: "X870 / X870E High-End", ram: "DDR5 64GB (2x32GB) 6000MHz",
+      storage: "Workstation SSD: 2x M.2 NVMe + 2x SSD SATA", cooling: "Líquida AIO 420mm"
+    }
+  };
+
+  function selectByText(sel, text) {
+    if (!text) { sel.value = "0"; return; }
+    const opt = Array.from(sel.options).find(o => o.textContent.includes(text));
+    if (opt) sel.value = opt.value;
+  }
+
+  function applyPreset(key) {
+    const p = PRESETS[key];
+    if (!p) return;
+    document.querySelector(`[data-seg="cpuBrand"] [data-value="${p.cpuBrand}"]`)?.click();
+    selectByText(cpuSel, p.cpu);
+    filtrarMotherboards();
+    filtrarRAM();
+    selectByText(mbSel, p.mb);
+    selectByText(ramSel, p.ram);
+    document.querySelector(`[data-seg="gpuBrand"] [data-value="${p.gpuBrand}"]`)?.click();
+    selectByText(gpuSel, p.gpu);
+    selectByText(storageSel, p.storage);
+    selectByText(coolingSel, p.cooling);
+    calc();
+  }
+
+  document.querySelectorAll(".preset-btn").forEach(btn => {
+    btn.addEventListener("click", () => applyPreset(btn.dataset.preset));
+  });
+
+  // ---------- Armados guardados ----------
+  function loadBuilds() {
+    try { return JSON.parse(localStorage.getItem("psu-calc-builds") || "[]"); }
+    catch (e) { return []; }
+  }
+  function saveBuilds(list) {
+    try { localStorage.setItem("psu-calc-builds", JSON.stringify(list)); }
+    catch (e) { /* almacenamiento no disponible */ }
+  }
+  function currentBuildState() {
+    return {
+      cpuBrand: currentSeg("cpuBrand"), cpuIdx: cpuSel.selectedIndex,
+      gpuBrand: currentSeg("gpuBrand"), gpuIdx: gpuSel.selectedIndex,
+      mbIdx: mbSel.selectedIndex, ramIdx: ramSel.selectedIndex,
+      storageIdx: storageSel.selectedIndex, coolingIdx: coolingSel.selectedIndex, marginPct
+    };
+  }
+  function applyBuildState(state) {
+    document.querySelector(`[data-seg="cpuBrand"] [data-value="${state.cpuBrand}"]`)?.click();
+    document.querySelector(`[data-seg="gpuBrand"] [data-value="${state.gpuBrand}"]`)?.click();
+    if (state.cpuIdx != null) cpuSel.selectedIndex = state.cpuIdx;
+    filtrarMotherboards();
+    filtrarRAM();
+    if (state.mbIdx != null) mbSel.selectedIndex = state.mbIdx;
+    if (state.ramIdx != null) ramSel.selectedIndex = state.ramIdx;
+    if (state.gpuIdx != null) gpuSel.selectedIndex = state.gpuIdx;
+    if (state.storageIdx != null) storageSel.selectedIndex = state.storageIdx;
+    if (state.coolingIdx != null) coolingSel.selectedIndex = state.coolingIdx;
+    marginPct = state.marginPct ?? 25;
+    document.querySelector(`[data-seg="margin"] [data-value="${marginPct}"]`)?.click();
+    calc();
+  }
+  function renderBuildsList() {
+    const list = loadBuilds();
+    const container = document.getElementById("buildsList");
+    if (!list.length) {
+      container.innerHTML = '<p class="builds-empty">Todavía no guardaste ningún armado.</p>';
+      return;
+    }
+    container.innerHTML = "";
+    list.forEach(build => {
+      const row = document.createElement("div");
+      row.className = "build-row";
+      row.innerHTML = `
+        <span class="build-name">${build.name}</span>
+        <span class="build-actions">
+          <button type="button" class="load-btn" data-id="${build.id}">Cargar</button>
+          <button type="button" class="delete-btn" data-id="${build.id}">Borrar</button>
+        </span>
+      `;
+      container.appendChild(row);
+    });
+    container.querySelectorAll(".load-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const build = loadBuilds().find(b => b.id === btn.dataset.id);
+        if (build) applyBuildState(build.state);
+      });
+    });
+    container.querySelectorAll(".delete-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        saveBuilds(loadBuilds().filter(b => b.id !== btn.dataset.id));
+        renderBuildsList();
+      });
+    });
+  }
+  document.getElementById("saveBuildBtn").addEventListener("click", () => {
+    const name = prompt("¿Cómo querés llamar a este armado?");
+    if (!name) return;
+    const list = loadBuilds();
+    list.push({ id: Date.now().toString(36), name: name.slice(0, 40), state: currentBuildState() });
+    saveBuilds(list);
+    renderBuildsList();
+  });
+  renderBuildsList();
+
+  // ---------- Exportar como imagen ----------
+  async function exportImage() {
+    if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
+    const canvas = document.createElement("canvas");
+    canvas.width = 640; canvas.height = 460;
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#0A0E12";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#F2A93B";
+    ctx.font = "600 12px 'IBM Plex Mono', monospace";
+    ctx.fillText("CALCULADORA DE FUENTE", 32, 44);
+
+    const total = document.getElementById("totalWatts").textContent;
+    ctx.fillStyle = "#E7ECF1";
+    ctx.font = "700 56px 'IBM Plex Mono', monospace";
+    ctx.fillText(total + " W", 32, 112);
+    ctx.fillStyle = "#6E7885";
+    ctx.font = "400 13px 'Space Grotesk', sans-serif";
+    ctx.fillText("consumo estimado en carga", 32, 134);
+
+    const psuWatts = document.getElementById("psuWatts").textContent;
+    const psuBadge = document.getElementById("psuBadge").textContent;
+    ctx.fillStyle = "#161D25";
+    ctx.fillRect(32, 156, canvas.width - 64, 64);
+    ctx.strokeStyle = "#232C36";
+    ctx.strokeRect(32, 156, canvas.width - 64, 64);
+    ctx.fillStyle = "#F2A93B";
+    ctx.font = "700 26px 'IBM Plex Mono', monospace";
+    ctx.fillText(psuWatts, 48, 196);
+    ctx.fillStyle = "#A7B1BC";
+    ctx.font = "400 12px 'IBM Plex Mono', monospace";
+    ctx.textAlign = "right";
+    ctx.fillText(psuBadge, canvas.width - 48, 193);
+    ctx.textAlign = "left";
+
+    const rows = Array.from(document.querySelectorAll("#breakdown .breakdown-row")).map(r => [
+      r.querySelector("span").textContent, r.querySelector("b").textContent
+    ]);
+    let y = 254;
+    ctx.font = "400 14px 'IBM Plex Mono', monospace";
+    rows.forEach(([label, value]) => {
+      ctx.fillStyle = "#A7B1BC";
+      ctx.fillText(label, 32, y);
+      ctx.fillStyle = "#E7ECF1";
+      ctx.textAlign = "right";
+      ctx.fillText(value, canvas.width - 32, y);
+      ctx.textAlign = "left";
+      ctx.strokeStyle = "#1B222B";
+      ctx.beginPath(); ctx.moveTo(32, y + 12); ctx.lineTo(canvas.width - 32, y + 12); ctx.stroke();
+      y += 34;
+    });
+
+    ctx.fillStyle = "#6E7885";
+    ctx.font = "400 11px 'IBM Plex Mono', monospace";
+    ctx.fillText("calculadora-fuente-pc — hecho por Alan", 32, canvas.height - 24);
+
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "resultado-psu.png";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, "image/png");
+  }
+  document.getElementById("exportBtn").addEventListener("click", exportImage);
 
   calc();
 })();
